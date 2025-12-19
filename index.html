@@ -613,6 +613,7 @@
     <h2>* Must enter your New School<br>Email to access</h2>
     <p>Email (School)</p>
     <input type="email" id="loginEmail" placeholder="your.email@newschool.edu" />
+    <button id="loginSubmitBtn" style="width: 100%; padding: 14px; background: #6c1d44; color: white; border: none; border-radius: 30px; font-size: 16px; font-weight: 700; margin-top: 20px; cursor: pointer; font-family: inherit;">Enter</button>
     <div class="login-error" id="loginError">Please use a valid newschool.edu email</div>
   </div>
 </div>
@@ -775,6 +776,12 @@
 
     // Auto-validate when email is typed
     loginEmail.addEventListener('change', validateLogin);
+
+    // Add button click handler
+    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+    if (loginSubmitBtn) {
+      loginSubmitBtn.addEventListener('click', validateLogin);
+    }
 
     // ----- In-memory items list (temporary) -----
     let items = [
