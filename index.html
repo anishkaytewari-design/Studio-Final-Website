@@ -229,7 +229,7 @@
     .chat-close{ 
       width:36px; 
       height:36px; 
-      isplay:inline-grid; 
+      display:inline-grid; 
       place-items:center; 
       border-radius:50%; 
       background:white; 
@@ -251,7 +251,7 @@
       padding:18px 22px; 
       border-radius:24px; 
       margin:12px 12px; 
-      max-width:%; 
+      max-width:70%; 
       font-weight:600; 
     }
 
@@ -875,7 +875,7 @@
       document.getElementById('messageBtn').onclick = ()=>{
         openChatForItem(item.id);
       };
-      document.getElementById('backBtn').onclick = ('index.html')=>{
+      document.getElementById('backBtn').onclick = ()=>{
         showSection('home');
       };
     }
@@ -1023,7 +1023,8 @@
     // utility: escape html & attributes for safety
     function escapeHtml(str){
       if(!str) return '';
-      return String(str).replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+      const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'};
+      return String(str).replace(/[&<>"]/g, c=>map[c]);
     }
     function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"&#39;"); }
 
