@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Post Item — Drop & Swap</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    :root{ --maroon: #6c1d44; }
+    body {
+        margin: 0;
+        font-family: Inter, sans-serif;
+        background: url("Images/Background- post.png") no-repeat center center fixed;
+        background-size: cover;
+        padding: 40px 60px;
+        min-height: 100vh;
+        animation: fadeIn .4s ease;
+        color: #222;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    h1 { font-size: 48px; font-weight: 800; color: #6c1d44; margin-bottom: 40px; }
+
+    .container { display: flex; gap: 16px; align-items: flex-start; }
+
+    .upload-box { width: 70%; aspect-ratio: 1; background: rgba(230,230,230,0.9); border-radius: 22px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; border: 2px dashed #999; }
+
+    .upload-box img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; object-position: center center; z-index: 1; }
+    .upload-box img[src] { display: block; }
+
+    input[type="file"]{ font-family: inherit; }
+    input[type="file"]::-webkit-file-upload-button, input[type="file"]::file-selector-button { text-transform: uppercase; font-family: inherit; font-size: inherit; font-weight:700; letter-spacing:0.6px; background:var(--maroon); color:white; border:none; padding:8px 14px; border-radius:12px; cursor:pointer; }
+
+    .plus-sign { font-size: 90px; color: #bbb; pointer-events: none; z-index: 2; position: relative; }
+    #removeImageBtn { display: none; margin-top: 12px; padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; color: white; background: #999; }
+
+    .form-area { padding-left: 0; }
+    .form-area label { font-weight: 700; display: block; margin-top: 8px; margin-right: 1000px;}
+    .form-area input, .form-area textarea { width: 70%; background: rgba(201,179,193,0.9); border: none; border-radius: 14px; padding: 14px; margin-top:6px; margin-right:margin-bottom:20px; font-size:16px; }
+    textarea { height:140px; resize:none; } 
+    .post-btn { background:#6c1d44; color:white; padding:20px 34px; border:none; border-radius:32px; cursor:pointer; font-size:18px; margin-right:10px; margin-top: 15px; }
+    .cancel-btn { background:#bcbcbc; color:white; padding:16px 34px; border:none; border-radius:32px; cursor:pointer; font-size:18px; margin-top: 15px; }
+
+</style>
+</head>
+<body>
+
+<h1>Give Away Material</h1>
+
+<div class="container">
+
+    <!-- LEFT SIDE: IMAGE UPLOAD -->
+    <div style="flex:1;">
+        <div class="upload-box" id="uploadArea">
+            <div class="plus-sign">+</div>
+            <img id="cropPreview" alt="Preview">
+        </div>
+
+        <input type="file" id="cropInput" accept="image/*" style="margin-top:15px; font-size:16px;">
+
+        <button id="removeImageBtn">Remove Image</button>
+    </div>
+
+    <!-- RIGHT SIDE: FORM -->
+    <div class="form-area" style="flex:1;">
+
+        <label>Item Title</label>
+        <input id="postTitle" type="text">
+
+        <label>Description</label>
+        <textarea id="postDesc"></textarea>
+
+        <label>Pick Up Location</label>
+        <input id="postLoc" type="text">
+
+        <div class="buttons">
+            <button class="post-btn" id="submitPost">Post Item</button>
+            <button class="cancel-btn" onclick="goHome()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+if (!localStorage.getItem("currentUser")) { localStorage.setItem("currentUser", "TEST USER"); }
+
+const uploadBox = document.getElementById("uploadArea");
+const cropInput = document.getElementById("cropInput");
+const cropPreview = document.getElementById("cropPreview");
+const removeBtn = document.getElementById("removeImageBtn");
+
+uploadBox.addEventListener("click", () => cropInput.click());
+
+cropInput.addEventListener("change", function () {
+    if (!this.files.length) return;
+    const file = this.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        cropPreview.src = e.target.result;
+        document.querySelector(".plus-sign").style.display = "none";
+        cropPreview.style.display = 'block';
+        cropPreview.style.objectFit = 'cover';
+        cropPreview.style.objectPosition = 'center center';
+        removeBtn.style.display = "inline-block";
+        uploadBox.style.background = '#e6e6e6';
+    };
+    reader.readAsDataURL(file);
+});
+
+removeBtn.onclick = () => {
+    cropPreview.src = "";
+    cropPreview.style.display = "none";
+    removeBtn.style.display = "none";
+    document.querySelector(".plus-sign").style.display = "block";
+    uploadBox.style.background = '#e6e6e6';
+};
+
+document.getElementById("submitPost").onclick = function () {
+    const title = document.getElementById("postTitle").value.trim();
+    const desc = document.getElementById("postDesc").value.trim();
+    const loc  = document.getElementById("postLoc").value.trim();
+    const image = cropPreview.src || "";
+    const user  = localStorage.getItem("currentUser") || "Unknown User";
+
+    if (!title || !image) {
+        alert("Please add a title and upload an image.");
+        return;
+    }
+
+    const newPost = { id: "itm_" + Math.random().toString(36).substr(2, 9), title, desc, loc, image, user };
+    const key = "dropAndSwap_posts";
+    const saved = JSON.parse(localStorage.getItem(key) || "[]");
+    saved.unshift(newPost);
+    localStorage.setItem(key, JSON.stringify(saved));
+
+    window.location.href = "fullwebsite.html";
+};
+
+function goHome() { window.location.href = "fullwebsite.html"; }
+</script>
+
+</body>
+</html>

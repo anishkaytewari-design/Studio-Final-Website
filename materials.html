@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotton Fabric – Drop & Swap</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background: url('Images/Listing page bakcground .jpg') center/cover no-repeat fixed;
+        }
+
+        /* NAVIGATION */
+        nav {
+            display: flex;
+            justify-content: flex-start;
+            gap: 36px;
+            padding: 22px 36px;
+            align-items: center;
+            border-bottom: none;
+        }
+
+        nav .logo {
+            font-weight: 900;
+            font-size: 28px;
+            color: #6c1d44;
+            padding-left: 10px;
+        }
+
+        /* PAGE LAYOUT */
+        .container {
+            display: flex;
+            gap: 60px;
+            padding: 60px;
+            align-items: flex-start;
+        }
+
+        /* IMAGE */
+        .item-image {
+            width: 45%;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* TEXT SECTION */
+        .details {
+            margin-top: 300px;
+
+            flex: 1;
+            padding-top: 40px;
+        }
+
+        .details h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 22px;
+            margin-top: 8px;
+            color: #333;
+        }
+
+        .posted-by {
+            margin-top: 5px;
+            font-size: 15px;
+            color: #8c8c8c;
+        }
+
+        /* BUTTONS */
+        .button-row {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 30px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-message {
+            background: #6c1d44;
+            color: white;
+        }
+
+        .btn-back {
+            background: #596536;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+                /* CHAT OVERLAY (matching main site) */
+                .chat-overlay{
+                    position:fixed;
+                    right:38px;
+                    bottom:36px;
+                    width:460px;
+                    max-width:calc(100% - 60px);
+                    background: linear-gradient(180deg, rgba(244,252,240,0.95), rgba(220,237,206,0.98));
+                    border-radius:26px;
+                    padding:22px;
+                    box-shadow:0 40px 70px rgba(0,0,0,0.12);
+                    z-index:100;
+                    transform: translateY(110%);
+                    transition: transform .35s cubic-bezier(.22,.9,.35,1);
+                }
+                .chat-overlay.open{ transform: translateY(0%); }
+                .chat-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+                .chat-header h4{ margin:0; font-size:24px; letter-spacing:1px; }
+                .chat-close{ width:36px; height:36px; display:inline-grid; place-items:center; border-radius:50%; background:white; box-shadow:0 8px 20px rgba(0,0,0,0.08); cursor:pointer; font-weight:900; }
+                .messages{ min-height:220px; max-height:420px; overflow:auto; padding-right:6px; margin-bottom:10px; }
+                .msg{ display:inline-block; padding:18px 22px; margin:6px 0; border-radius:18px; max-width:90%; font-weight:600; line-height:1.4; }
+                .msg.in{ background:white; color:#333; border:1px solid rgba(0,0,0,0.05); }
+                .msg.out{ background:var(--maroon); color:white; margin-left:auto; display:block; }
+                .chat-input-row{ display:flex; gap:10px; }
+                .chat-input{ flex:1; padding:12px 14px; border-radius:12px; border:1px solid #e6e6e6; font-family:inherit; font-size:16px; }
+                .chat-send{ background:var(--maroon); color:white; border:none; border-radius:12px; padding:0 16px; cursor:pointer; font-weight:700; }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">DROP &amp; SWAP</div>
+    </nav>
+
+    <div class="container">
+
+        <!-- LEFT IMAGE -->
+        <img id="detailImage" src="Images/Wood Plank.jpg" class="item-image" alt="Item">
+
+        <!-- RIGHT DETAILS -->
+        <div class="details">
+            <h1 id="detailTitle">Wooden Planks</h1>
+            <div class="subtitle" id="detailSubtitle">4ft length 15in width, Light oak colour</div>
+            <div class="posted-by" id="detailPostedBy">Posted By: Anishka</div>
+
+            <div class="button-row">
+                <button class="btn btn-message" onclick="goToChat()">
+                    Message Owner
+                </button>
+
+                <button class="btn btn-back" onclick="window.location.href='fullwebsite.html'">
+                    Back
+                </button>
+            </div>
+        </div>
+    </div>
+
+        <!-- CHAT OVERLAY -->
+        <div class="chat-overlay" id="chatOverlay" aria-hidden="true">
+            <div class="chat-header">
+                <h4 id="chatTitle">Message</h4>
+                <div class="chat-close" id="chatClose">✕</div>
+            </div>
+
+            <div class="messages" id="messages"></div>
+
+            <div class="chat-input-row">
+                <input id="chatInput" class="chat-input" placeholder="Message" />
+                <button id="sendBtn" class="chat-send">Send</button>
+            </div>
+        </div>
+
+    <script>
+        let currentItem = null;
+
+        // Load item from sessionStorage when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            const itemJson = sessionStorage.getItem('currentItem');
+            if (itemJson) {
+                currentItem = JSON.parse(itemJson);
+                // Populate the page with item data
+                document.getElementById('detailImage').src = currentItem.image;
+                document.getElementById('detailImage').alt = currentItem.title;
+                document.getElementById('detailTitle').textContent = currentItem.title;
+                document.getElementById('detailSubtitle').textContent = currentItem.desc || currentItem.qty || '';
+                document.getElementById('detailPostedBy').textContent = 'Posted By: ' + (currentItem.postedBy || 'Unknown');
+            }
+        });
+
+        // Simple in-page chat state
+        let chats = {};
+
+        function openChatForItem(item){
+            if(!item) return;
+            const overlay = document.getElementById('chatOverlay');
+            const titleEl = document.getElementById('chatTitle');
+            titleEl.textContent = 'Message ' + (item.postedBy || 'Poster');
+            overlay.classList.add('open');
+            overlay.setAttribute('aria-hidden','false');
+
+            if(!chats[item.id]){
+              chats[item.id] = [ {from:'them', text:`Hi — this is ${item.postedBy||'Poster'}. Thanks for messaging about "${item.title||'Item'}"!`} ];
+            }
+            renderChatMessages(item.id);
+
+            document.getElementById('sendBtn').onclick = ()=> sendChatMessage(item.id);
+            document.getElementById('chatInput').onkeydown = (e)=>{ if(e.key==='Enter') sendChatMessage(item.id); };
+        }
+
+        function renderChatMessages(itemId){
+            const arr = chats[itemId]||[];
+            const messagesEl = document.getElementById('messages');
+            messagesEl.innerHTML = '';
+            arr.forEach(m=>{
+              const div = document.createElement('div');
+              div.className = 'msg ' + (m.from==='me' ? 'out' : 'in');
+              div.textContent = m.text;
+              messagesEl.appendChild(div);
+            });
+            setTimeout(()=> messagesEl.scrollTop = messagesEl.scrollHeight, 10);
+        }
+
+        function sendChatMessage(itemId){
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if(!text) return;
+            if(!chats[itemId]) chats[itemId]=[];
+            chats[itemId].push({from:'me', text});
+            renderChatMessages(itemId);
+            input.value='';
+        }
+
+        function goToChat() {
+            if (currentItem) {
+                openChatForItem(currentItem);
+            }
+        }
+
+        document.getElementById('chatClose').onclick = ()=>{
+          const overlay = document.getElementById('chatOverlay');
+          overlay.classList.remove('open');
+          overlay.setAttribute('aria-hidden','true');
+          document.getElementById('messages').innerHTML='';
+          document.getElementById('chatInput').value='';
+        };
+    </script>
+
+</body>
+</html>

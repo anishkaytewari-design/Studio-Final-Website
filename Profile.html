@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile – Drop & Swap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --maroon: #6c1d44;
+            --olive: #596536;
+            --light-bg: #f4fcf0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(135deg, #f4fcf0 0%, #e8f5e0 100%);
+            min-height: 100vh;
+            padding: 60px 40px;
+            color: #ffffff;
+        }
+
+        .page-title {
+            font-size: 56px;
+            font-weight: 900;
+            color: var(--maroon);
+            margin: 0 0 60px 0;
+            letter-spacing: -1px;
+        }
+
+        .container {
+            display: flex;
+            gap: 80px;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        /* LEFT SIDE: PROFILE PICTURE */
+        .profile-pic-section {
+            flex: 0 0 300px;
+        }
+
+        .upload-box {
+            width: 280px;
+            height: 280px;
+            background: white;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .upload-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .upload-box img[src] {
+            display: block;
+        }
+
+        .plus-icon {
+            font-size: 80px;
+            color: #c9b3c1;
+            font-weight: 300;
+            pointer-events: none;
+        }
+
+        .upload-label {
+            display: block;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #999;
+            text-align: center;
+        }
+
+        .remove-btn {
+            background: #ddd;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #555;
+        }
+
+        .remove-btn:hover {
+            opacity: 0.9;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* RIGHT SIDE: FORM */
+        .form-section {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(201, 179, 193, 0.7);
+            font-size: 16px;
+            font-family: inherit;
+            color: #333;
+            outline: none;
+            transition: background 0.2s ease;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            background: rgba(201, 179, 193, 0.85);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-weight: 500;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 16px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-save {
+            background: var(--olive);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-back {
+            background: var(--olive);
+            color: white;
+            flex: 1;
+        }
+
+        .success-message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            background: #d4edda;
+            border-radius: 12px;
+            color: #155724;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                gap: 40px;
+            }
+
+            .profile-pic-section {
+                flex: 1;
+            }
+
+            .page-title {
+                font-size: 40px;
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="page-title">ME!</h1>
+
+    <div class="container">
+        <!-- LEFT: PROFILE PICTURE UPLOAD -->
+        <div class="profile-pic-section">
+            <div class="upload-box" id="uploadBox">
+                <div style="text-align: center;">
+                    <img id="profilePreview" alt="Profile Picture">
+                    <div class="plus-icon">+</div>
+                </div>
+            </div>
+            <input type="file" id="profileInput" accept="image/*">
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px; justify-content:center;">
+              <label class="upload-label" for="profileInput" style="margin:0;">Upload Profile</label>
+              <button type="button" id="removeProfileBtn" class="remove-btn">Remove</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: FORM -->
+        <div class="form-section">
+            <div class="success-message" id="successMessage">✓ Profile saved successfully!</div>
+
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" placeholder="Your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email (School)</label>
+                    <input type="email" id="email" placeholder="your.email@newschool.edu" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Number</label>
+                    <input type="tel" id="phone" placeholder="Your phone number">
+                </div>
+
+                <div class="button-row">
+                    <button type="submit" class="btn btn-save">Save Profile</button>
+                    <button type="button" class="btn btn-back" onclick="goBack()">Back</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const uploadBox = document.getElementById('uploadBox');
+        const profileInput = document.getElementById('profileInput');
+        const profilePreview = document.getElementById('profilePreview');
+        const plusIcon = document.querySelector('.plus-icon');
+        const profileForm = document.getElementById('profileForm');
+        const successMessage = document.getElementById('successMessage');
+
+        // Clear all saved profile data to show fresh profile page
+        window.addEventListener('DOMContentLoaded', function() {
+            localStorage.removeItem('userProfile');
+            localStorage.removeItem('currentUser');
+            // Reset form to empty state
+            profilePreview.src = '';
+            profilePreview.style.display = 'none';
+            plusIcon.style.display = 'block';
+        });
+
+        // Click upload box to select file
+        uploadBox.addEventListener('click', function() {
+            profileInput.click();
+        });
+
+        // Remove profile picture
+        document.getElementById('removeProfileBtn').addEventListener('click', function(){
+            profilePreview.src = '';
+            profilePreview.style.display = 'none';
+            plusIcon.style.display = 'block';
+            profileInput.value = '';
+        });
+
+        // Handle image upload
+        profileInput.addEventListener('change', function() {
+            if (!this.files.length) return;
+            const file = this.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                profilePreview.src = e.target.result;
+                profilePreview.style.display = 'block';
+                plusIcon.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Save profile
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const profile = {
+                name: document.getElementById('name').value.trim(),
+                bio: document.getElementById('bio').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                profilePic: profilePreview.src || ''
+            };
+
+            if (!profile.name || !profile.email) {
+                alert('Please fill in name and email.');
+                return;
+            }
+
+            localStorage.setItem('userProfile', JSON.stringify(profile));
+            localStorage.setItem('currentUser', profile.name);
+
+            // Show success message
+            successMessage.classList.add('show');
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 3000);
+        });
+
+        function goBack() {
+            window.location.href = 'fullwebsite.html';
+        }
+    </script>
+
+</body>
+</html>

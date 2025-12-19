@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drop & Swap - SPA </title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --maroon:#6c1d44;
+      --olive:#596536;
+      --muted:#8c8c8c;
+      --bg:#ce444400;
+      --card-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+  
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:#111;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* NAV */
+    header{
+      display:flex;
+      justify-content:flex-end;
+      gap:36px;
+      padding:22px 36px;
+      align-items:center;
+      border-bottom:1px solid #eeeeee00;
+    }
+    header .logo{
+      margin-right:auto;
+      font-weight:900;
+      font-size:28px;
+      color:var(--maroon);
+      padding-left:10px;
+    }
+    header a{
+      color:#111;
+      text-decoration:none;
+      font-weight:700;
+      letter-spacing:0.6px;
+    }
+    header button{
+      background:transparent;
+      border:2px solid var(--maroon);
+      color:var(--maroon);
+      padding:8px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    /* LAYOUT */
+    main{
+      padding:0;
+      width:100%;
+      height:auto;
+      margin:0;
+    }
+
+    /* Title */
+    .section-title{
+      text-align:left top;
+      font-size:50px;
+      font-weight:800;
+      letter-spacing: 5px;
+      color:var(--maroon);
+      margin:8px 0 28px;
+    }
+
+    /* GRID */
+    .grid{
+      display:flex;
+      gap:28px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+
+    .card{
+      width:320px;
+      background:#fff;
+      border-radius:var(--radius);
+      box-shadow:var(--card-shadow);
+      overflow:hidden;
+      cursor:pointer;
+      transition:transform .15s ease, box-shadow .15s ease;
+      text-decoration:none;
+      color:inherit;
+    }
+    .card:hover{ transform: translateY(-6px); box-shadow:0 14px 30px rgba(0,0,0,0.12); }
+    .card img{ width:100%; height:220px; object-fit:cover; display:block; }
+    .card .body{ padding:18px; }
+    .card .title{ font-weight:700; font-size:18px; margin-bottom:6px;}
+    .card .sub{ color:var(--muted); font-size:13px;}
+
+    /* DETAIL VIEW (hidden by default) */
+    .detail-view{
+      display:none;
+      align-items:flex-start;
+      gap:44px;
+      padding:30px 40px;
+    }
+    .detail-view.active{ display:flex; }
+
+    .detail-left{
+      width:55%;
+    }
+    .detail-left img{
+      width:100%;
+      border-radius:var(--radius);
+      object-fit:cover;
+      box-shadow:var(--card-shadow);
+      height:520px;
+    }
+
+    .detail-right{
+      flex:1;
+      padding-top:30px;
+    }
+    .detail-right h1{ 
+      font-size:56px; 
+      margin:0 0 10px; 
+      font-weight:800;
+    }
+
+    .detail-right .qty{ 
+      font-size:20px; 
+      margin-top:6px; 
+      color:#222; 
+      font-weight:700;
+    }
+
+    .detail-right .posted{ 
+      color:var(--muted); 
+      margin-top:8px;
+    }
+
+    .button-row{ 
+      margin-top:40px; display:flex; gap:20px; align-items:center;}
+    .btn{
+      border:none; 
+      cursor:pointer; 
+      padding:14px 34px; 
+      border-radius:36px; 
+      font-weight:700; 
+      font-size:16px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.06);
+    }
+    .btn.message{ 
+      background:var(--maroon); 
+      color:white; }
+    .btn.back{ background:var(--olive); color:white; }
+
+    /* POST FORM (modal-like panel on right) */
+    .post-panel{
+      display:none;
+      position:fixed;
+      right:30px;
+      top:80px;
+      width:420px;
+      background:white;
+      border-radius:18px;
+      box-shadow:0 30px 60px rgba(0,0,0,0.12);
+      padding:22px;
+      z-index:60;
+    }
+    .post-panel.active{ 
+      display:block; 
+    }
+    .post-panel h3{ 
+      margin:4px 0 12px; 
+      font-size:18px;
+    }
+    .field{ 
+      margin-bottom:12px; 
+    }
+    .field label{ 
+      display:block; 
+      font-size:13px; 
+      color:#444; 
+      margin-bottom:6px; 
+    }
+
+    .field input[type="text"], .field input[type="file"], .field textarea{
+      width:100%; 
+      padding:10px 12px; 
+      border-radius:10px; 
+      border:1px solid #e6e6e6; 
+      font-size:14px;
+    }
+    .field textarea{ min-height:90px; resize:vertical; }
+
+    /* Chat bubble (overlay) */
+    .chat-overlay{
+      position:fixed;
+      right:38px;
+      bottom:36px;
+      width:460px;
+      max-width:calc(100% - 60px);
+      background: linear-gradient(180deg, rgba(244,252,240,0.9), rgba(90, 110, 74, 0.95));
+      border-radius:26px;
+      padding:22px;
+      box-shadow:0 40px 70px rgba(0,0,0,0.12);
+      z-index:100;
+      transform: translateY(110%);
+      transition: transform .35s cubic-bezier(.22,.9,.35,1);
+    }
+    .chat-overlay.open{ transform: translateY(0%); }
+    .chat-header{ 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      margin-bottom:10px;
+    }
+    .chat-header h4{ 
+      margin:0; 
+      font-size:24px; 
+      letter-spacing:1px;
+    }
+    .chat-close{ 
+      width:36px; 
+      height:36px; 
+      isplay:inline-grid; 
+      place-items:center; 
+      border-radius:50%; 
+      background:white; 
+      box-shadow:0 8px 20px rgba(0,0,0,0.08); 
+      cursor:pointer; 
+      font-weight:900; }
+
+    /* messages */
+    .messages{ 
+      min-height:220px; 
+      max-height:420px; 
+      overflow:auto;
+       padding-right:6px; 
+       margin-bottom:10px; 
+      }
+
+    .msg{ 
+      display:inline-block; 
+      padding:18px 22px; 
+      border-radius:24px; 
+      margin:12px 12px; 
+      max-width:%; 
+      font-weight:600; 
+    }
+
+    .msg.out{ 
+      background:#b86d79; 
+      color:white; 
+      border-radius:24px 24px 12px 24px; 
+      float:right; 
+      clear:both;
+    }
+
+    .msg.in{ 
+      background:#ca8dc0; 
+      color:rgb(0, 0, 0); 
+      border-radius:24px 24px 24px 12px; 
+      float:left; 
+      clear:both; 
+    }
+
+    /* input row */
+    .chat-input-row{ 
+      display:flex; 
+      gap:14px; 
+      align-items:center; 
+      margin-top:8px;
+    }
+
+    .chat-input{ 
+      flex:1; 
+      padding:14px 18px; 
+      border-radius:36px; 
+      border:none; 
+      font-size:18px; 
+      font-weight:600; 
+      background:linear-gradient(90deg,#bbd86f,#8fb13a); 
+      color:rgb(0, 0, 0);
+       outline:none;
+      }
+    .chat-send{ 
+      background:#ca8dc0; 
+      border:none; 
+      color:#ffffff; 
+      padding:12px 16px; 
+      border-radius:16px; 
+      font-weight:800; 
+      cursor:pointer;
+    }
+
+
+    /* responsive */
+    @media (max-width:980px){
+      .detail-view{ flex-direction:column; }
+      .detail-left img{ height:360px; }
+      .detail-left{ width:100%; }
+      .detail-right{ width:100%; padding-right:12px; }
+      .chat-overlay{ right:16px; left:16px; bottom:18px; width:auto; }
+    }
+
+    #hero {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 450px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -1;
+  pointer-events: none;
+    }
+    #hero img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+
+     /* Browse label + dropdown (material categories) placed inside the home section)
+       Label sits at the top-left of the white available-items area; dropdown appears below it.
+       We reserve a left gutter inside #home so cards won't overlap the filter area. */
+
+    :root{ 
+      --filter-left-offset:18px;
+       --filter-dropdown-width:160px;
+      --filter-gap:12px;
+       --filter-label-size:28px; 
+       --filter-label-padding:6px 12px; 
+      }
+         #home{ 
+          position:relative; 
+          padding-left: calc(var(--filter-left-offset) + var(--filter-dropdown-width) + var(--filter-gap));
+           
+          /* Use listing background and ensure it fills corner-to-corner under the spine */
+           background-image: url('Images/background- home page.jpg');
+           background-size: cover;
+           background-position: center center;
+           background-repeat: no-repeat;
+           }
+
+    .browse-label{ 
+      position:absolute; 
+      top:80px; left:var(--filter-left-offset); 
+      display:inline-block; 
+      font-weight:800; 
+      color:var(--maroon); 
+      cursor:pointer; 
+      letter-spacing:0.6px;
+          font-size:var(--filter-label-size); 
+          padding:var(--filter-label-padding); 
+          border:2px solid var(--maroon); 
+          background:transparent; 
+          border-radius:12px; 
+          color:var(--maroon); 
+          text-align:center; 
+          line-height:1; 
+        }
+
+    .browse-dropdown{ 
+      display:none; 
+      position:absolute; 
+      top:calc(80px + var(--filter-label-size) + 12px); 
+      left:var(--filter-left-offset); 
+      background:white; 
+      border-radius:12px; 
+      box-shadow:0 10px 30px rgba(0,0,0,0.12); 
+      z-index:80; 
+    }
+     .browse-dropdown[aria-hidden="false"]{ 
+      display:block; 
+    }
+
+     .browse-dropdown ul{ 
+      list-style:none; 
+      margin:0; 
+      padding:8px 6px; 
+      min-width:var(--filter-dropdown-width); 
+    }
+     .browse-dropdown li{ 
+      padding:8px 12px; 
+      cursor:pointer; 
+      border-radius:8px; 
+      font-weight:700; 
+      color:#333; 
+    }
+     .browse-dropdown li:hover{ 
+      background:rgba(0,0,0,0.03); 
+    }
+    .browse-dropdown li.active{ 
+      background:var(--maroon); 
+      color:white; 
+    }
+
+    /* Header Post button: match header link typography and use maroon background */
+    #postBtn {
+      text-transform:uppercase;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      background: var(--maroon);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    /* Keep post form submit styling separate (large buttons elsewhere) */
+    #submitPost {
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 28px;
+    }
+/* FULLSCREEN background image */
+.home-wrap {
+  position: relative;
+  display: flex;
+  background: none;
+  min-height: 100vh;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Fullscreen global background */
+
+#global-bg{ 
+  position: fixed;        /* Stay fixed on scroll */
+  top: 0;
+  left: 0;
+  width: 100vw;           /* Full viewport width */
+  height: 100vh;          /* Full viewport height */
+  background-image: url("background- home page.jpg");
+  background-size: cover;  /* Cover entire area without stretching */
+  background-position: center center; /* Center the image */
+  background-repeat: no-repeat;
+  z-index: -1;            /* Behind all content */
+}
+
+/* LAYOUT: Left filter column + right content */
+.filter-column {
+  width: 200px;            /* ← RESERVES space so cards never enter */
+  padding: 40px 20px;
+  position: relative;
+}
+
+.home-content {
+  flex: 1;
+  padding: 40px 40px;
+}
+
+/* FILTER button styled like section-title */
+.browse-label {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--maroon);
+  border: 2px solid var(--maroon);
+  border-radius: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  display: inline-block;
+  background: rgba(255,255,255,0.7);
+}
+
+/* Dropdown */
+.browse-dropdown {
+  display: none;
+  position: absolute;
+  top: 90px;
+  left: 20px;
+  width: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  z-index: 20;
+}
+
+.browse-dropdown[aria-hidden="false"] {
+  display: block;
+}
+
+.browse-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 8px 6px;
+}
+
+.browse-dropdown li {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.browse-dropdown li:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.browse-dropdown li.active {
+  background: var(--maroon);
+  color: white;
+}
+
+/* Card grid stays EXACTLY as before */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  justify-content: flex-start;
+}
+
+/* LOGIN MODAL */
+.login-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 0.3s ease;
+}
+
+.login-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.login-box {
+  background: white;
+  border-radius: 20px;
+  padding: 60px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.login-box h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.login-box p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 30px;
+  background: rgba(201, 179, 193, 0.7);
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  font-family: inherit;
+  outline: none;
+  transition: background 0.2s ease;
+  box-sizing: border-box;
+}
+
+.login-box input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.login-box input:focus {
+  background: rgba(201, 179, 193, 0.9);
+}
+
+.login-error {
+  color: #d32f2f;
+  font-size: 13px;
+  margin-top: 10px;
+  display: none;
+}
+
+.login-error.show {
+  display: block;
+}
+
+  </style>
+</head>
+<body>
+
+<!-- LOGIN MODAL -->
+<div class="login-modal" id="loginModal">
+  <div class="login-box">
+    <h2>* Must enter your New School<br>Email to access</h2>
+    <p>Email (School)</p>
+    <input type="email" id="loginEmail" placeholder="your.email@newschool.edu" />
+    <div class="login-error" id="loginError">Please use a valid newschool.edu email</div>
+  </div>
+</div>
+
+<!-- FIXED BACKDROP -->
+<div id="global-bg"></div>
+
+  <header>
+    <div class="logo">DROP &amp; SWAP</div>
+    <a id="nav-profile" href="Profile.html">PROFILE</a>
+    <button id="postBtn" onclick="goToPostPage()">Post Item</button>
+  </header>
+
+  <!-- HERO IMAGE -->
+  <img class="hero0-image" src="Images/spine (2).png" alt="hero graphic">
+
+  <!-- BROWSE DROPDOWN -->
+  <!-- (moved into the #home section; original placeholder removed here) -->
+
+  <main>
+  <!-- Fullscreen background -->
+  <div id="global-bg"></div>
+
+  <!-- HOME SECTION -->
+  <section id="home" class="home-wrap">
+    <!-- FILTER (moved here so it sits under the hero image) -->
+    <div id="browseLabel" class="browse-label" onclick="toggleBrowseDropdown(event)">FILTER</div>
+    <div class="browse-dropdown" id="browseDropdown" aria-hidden="true">
+      <ul>
+        <li data-cat="All" class="active">All Materials</li>
+        <li data-cat="Fabric">Fabric</li>
+        <li data-cat="Wood">Wood</li>
+        <li data-cat="Thread">Thread</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT CONTENT COLUMN -->
+    <div class="home-content">
+      <h2 class="section-title">AVAILABLE ITEMS</h2>
+      <div class="grid" id="itemsGrid"></div>
+    </div>
+  </section>
+</main>
+
+
+    <!-- DETAIL -->
+    <section id="detail"  
+    class="detail-view" 
+    aria-hidden="true">
+      <div class="detail-left">
+        <img id="detailImage" src="" alt="Item image">
+      </div>
+      <div class="detail-right">
+        <h1 id="detailTitle">Title</h1>
+        <div class="qty" id="detailQty">Quantity</div>
+        <div class="posted" id="detailPosted">Posted By: ...</div>
+
+        <div class="button-row">
+          <button class="btn message" id="messageBtn">Message Poster</button>
+          <button class="btn back" id="backBtn">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Post Panel -->
+    <section id="postPage" style="display:none;">
+    <aside class="post-panel" id="postPanel" aria-hidden="true">
+      <h3>Post an Item</h3>
+
+      <div class="field">
+        <label>Item Title</label>
+        <input id="postTitle" type="text" placeholder="e.g. Cotton Fabric">
+      </div>
+
+      <div class="field">
+        <label>Quantity / Short note</label>
+        <input id="postQty" type="text" placeholder="e.g. 5 Yards">
+      </div>
+
+      <div class="field">
+        <label>Posted By (name)</label>
+        <input id="postName" type="text" placeholder="Your name">
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <select id="postCategory" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e6e6;">
+          <option value="Fabric">Fabric</option>
+          <option value="Wood">Wood</option>
+          <option value="Thread">Thread</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Image</label>
+        <input id="postImage" type="file" accept="image/*">
+      </div>
+
+      <div class="field">
+        <label>Description (optional)</label>
+        <textarea id="postDesc" placeholder="Add more details..."></textarea>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+        <button onclick="togglePostPanel()" style="background:#ddd; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">Cancel</button>
+        <button onclick="createPost()" style="background:var(--maroon); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">Publish</button>
+      </div>
+    </aside>
+    </section>
+
+    <!-- Chat overlay -->
+    <div class="chat-overlay" id="chatOverlay" aria-hidden="true">
+      <div class="chat-header">
+        <h4 id="chatTitle">Message</h4>
+        <div class="chat-close" id="chatClose">✕</div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="chat-input-row">
+        <input id="chatInput" class="chat-input" placeholder="Message" />
+        <button id="sendBtn" class="chat-send">Send</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // LOGIN MODAL LOGIC
+    const loginModal = document.getElementById('loginModal');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginError = document.getElementById('loginError');
+
+    // Check if user is already logged in
+    if (sessionStorage.getItem('loggedIn') === 'true') {
+      loginModal.classList.add('hidden');
+    }
+
+    // Validate email on Enter key and when typing stops
+    loginEmail.addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        validateLogin();
+      }
+    });
+
+    function validateLogin() {
+      const email = loginEmail.value.trim().toLowerCase();
+      const isValid = email.endsWith('@newschool.edu');
+
+      if (isValid) {
+        sessionStorage.setItem('loggedIn', 'true');
+        sessionStorage.setItem('userEmail', email);
+        loginModal.classList.add('hidden');
+        loginError.classList.remove('show');
+      } else {
+        loginError.classList.add('show');
+        loginEmail.value = '';
+      }
+    }
+
+    // Auto-validate when email is typed
+    loginEmail.addEventListener('change', validateLogin);
+
+    // ----- In-memory items list (temporary) -----
+    let items = [
+      // sample placeholder items
+      {
+        id: generateId(),
+        title: "Plank of Wood",
+        category: "Wood",
+        qty: "Leftovers - free",
+        postedBy: "Studio A",
+        desc: "Slightly warped but usable.",
+        image: "Images/Wood Plank.jpg"
+      },
+      {
+        id: generateId(),
+        title: "Cotton Fabric",
+        category: "Fabric",
+        qty: "5 Yards",
+        postedBy: "Anishka",
+        desc: "Natural washed cotton.",
+        image: "Images/Cotton Clothe.jpg"
+      },
+      {
+        id: generateId(),
+        title: "Colourful Thread",
+        category: "Thread",
+        qty: "Multiple spools",
+        postedBy: "Indigo",
+        desc: "Various colors.",
+        image: "Images/Thread.jpg"
+      }
+    ];
+
+    // chat state (simple per-item messages stored in object with itemId key)
+    let chats = {}; // { itemId: [ {from:'me'|'them', text:'...'} ] }
+
+    // currently open item
+    let currentItem = null;
+
+    // helpers
+    function generateId(){ return 'itm_'+Math.random().toString(36).slice(2,9); }
+
+    // initial render
+    const itemsGrid = document.getElementById('itemsGrid');
+    const detailSection = document.getElementById('detail');
+    const homeSection = document.getElementById('home');
+    const postPanel = document.getElementById('postPanel');
+    const chatOverlay = document.getElementById('chatOverlay');
+    const messagesEl = document.getElementById('messages');
+    const chatTitle = document.getElementById('chatTitle');
+
+    let activeCategory = 'All';
+
+    function renderItems(filter){
+      const category = filter || activeCategory || 'All';
+      itemsGrid.innerHTML = '';
+      const list = items.filter(it => category === 'All' || (it.category === category));
+      list.forEach(item => {
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = '#';
+        a.dataset.id = item.id;
+        a.innerHTML = `
+          <img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" />
+          <div class="body">
+            <div class="title">${escapeHtml(item.title)}</div>
+            <div class="sub">${escapeHtml(item.qty)}</div>
+          </div>
+        `;
+        a.addEventListener('click', e=>{
+          e.preventDefault();
+          openDetail(item.id);
+        });
+        itemsGrid.appendChild(a);
+      });
+    }
+
+    // show / hide sections
+    function showSection(name){
+      if(name==='home'){
+        homeSection.style.display = 'block';
+        detailSection.classList.remove('active');
+        detailSection.setAttribute('aria-hidden','true');
+      }
+    }
+
+    // open detail with item id
+    function openDetail(id){
+      const item = items.find(it => it.id === id);
+      if(!item) return;
+      currentItem = item;
+      // Store item in sessionStorage so materials.html can access it
+      sessionStorage.setItem('currentItem', JSON.stringify(item));
+      // Redirect to materials.html detail page
+      window.location.href = 'materials.html';
+
+      // bind message & back
+      document.getElementById('messageBtn').onclick = ()=>{
+        openChatForItem(item.id);
+      };
+      document.getElementById('backBtn').onclick = ()=>{
+        showSection('home');
+      };
+    }
+
+    // POST PANEL toggle
+    function togglePostPanel(){
+      const active = postPanel.classList.toggle('active');
+      postPanel.setAttribute('aria-hidden', active ? 'false' : 'true');
+    }
+
+    // createPost: reads file input and creates a dataURL -> add to items (includes category)
+    function createPost(){
+      const title = document.getElementById('postTitle').value.trim();
+      const qty = document.getElementById('postQty').value.trim();
+      const postedBy = document.getElementById('postName').value.trim() || 'Anonymous';
+      const desc = document.getElementById('postDesc').value.trim();
+      const category = document.getElementById('postCategory') ? document.getElementById('postCategory').value : 'Misc';
+      const fileInput = document.getElementById('postImage');
+
+      if(!title){
+        alert('Please add an item title');
+        return;
+      }
+
+      // if file chosen, read as data URL
+      const file = fileInput.files[0];
+      if(file){
+        const reader = new FileReader();
+        reader.onload = function(e){
+          const dataURL = e.target.result;
+          pushNewItem(title, qty, postedBy, desc, dataURL, category);
+          resetPostForm();
+          togglePostPanel();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // fallback placeholder image if no file selected
+        const placeholder = 'https://via.placeholder.com/1200x800?text=No+Image';
+        pushNewItem(title, qty, postedBy, desc, placeholder, category);
+        resetPostForm();
+        togglePostPanel();
+      }
+    }
+
+    function pushNewItem(title, qty, postedBy, desc, imageData, category){
+      const newItem = {
+        id: generateId(),
+        title, qty, postedBy, desc,
+        image: imageData,
+        category: category || 'Misc'
+      };
+      // add to front so newest shows first
+      items.unshift(newItem);
+      renderItems();
+    }
+
+    function resetPostForm(){
+      document.getElementById('postTitle').value='';
+      document.getElementById('postQty').value='';
+      document.getElementById('postName').value='';
+      document.getElementById('postDesc').value='';
+      document.getElementById('postImage').value='';
+      if(document.getElementById('postCategory')) document.getElementById('postCategory').value='Fabric';
+    }
+
+    // Open post page (hide home/detail, show post page)
+    function openPostPage() {
+      homeSection.style.display = "none";
+      detailSection.style.display = "none";
+
+      const postPageEl = document.getElementById("postPage");
+      if(postPageEl) postPageEl.style.display = "block";
+    }
+
+    // Back to home from post page
+    function backToHome() {
+      const postPageEl = document.getElementById("postPage");
+      if(postPageEl) postPageEl.style.display = "none";
+      homeSection.style.display = "block";
+    }
+
+    // CHAT functions
+    function openChatForItem(itemId){
+      const item = items.find(i => i.id===itemId);
+      if(!item) return;
+
+      chatOverlay.classList.add('open');
+      chatOverlay.setAttribute('aria-hidden','false');
+      chatTitle.textContent = 'Message ' + (item.postedBy || 'Poster');
+
+      // ensure chat array exists
+      if(!chats[itemId]) chats[itemId]=[
+        // optionally seed a friendly opener from poster
+        {from:'them', text: `Hi — this is ${item.postedBy}. Thanks for messaging about "${item.title}"!`}
+      ];
+
+      renderChatMessages(itemId);
+
+      // bind send
+      document.getElementById('sendBtn').onclick = ()=> sendChatMessage(itemId);
+      document.getElementById('chatInput').onkeydown = (e)=>{
+        if(e.key === 'Enter') sendChatMessage(itemId);
+      };
+    }
+
+    // render chat messages for a given item
+    function renderChatMessages(itemId){
+      const arr = chats[itemId]||[];
+      messagesEl.innerHTML = '';
+      arr.forEach(m=>{
+        const div = document.createElement('div');
+        div.className = 'msg ' + (m.from==='me' ? 'out' : 'in');
+        div.textContent = m.text;
+        messagesEl.appendChild(div);
+      });
+      // scroll to bottom
+      setTimeout(()=> messagesEl.scrollTop = messagesEl.scrollHeight, 10);
+    }
+
+    function sendChatMessage(itemId){
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if(!text) return;
+      if(!chats[itemId]) chats[itemId]=[];
+      // push my message
+      chats[itemId].push({from:'me', text});
+      renderChatMessages(itemId);
+      input.value='';
+
+      // simulate a short reply from "poster" for demo purposes
+      setTimeout(()=>{
+        chats[itemId].push({from:'them', text: `Thanks — I got your message: "${text}"`});
+        renderChatMessages(itemId);
+      }, 650);
+    }
+
+    // chat close button
+    document.getElementById('chatClose').onclick = ()=>{
+      chatOverlay.classList.remove('open');
+      chatOverlay.setAttribute('aria-hidden','true');
+      messagesEl.innerHTML='';
+      document.getElementById('chatInput').value='';
+    };
+
+    // utility: escape html & attributes for safety
+    function escapeHtml(str){
+      if(!str) return '';
+      return String(str).replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+    }
+    function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"&#39;"); }
+
+    // BROWSE dropdown & category filter helpers
+    function toggleBrowseDropdown(e){
+      if(e && e.stopPropagation) e.stopPropagation();
+      const browseDropdownElLocal = document.getElementById('browseDropdown');
+      if(!browseDropdownElLocal) return;
+      const open = browseDropdownElLocal.getAttribute('aria-hidden') === 'false';
+      const newOpen = !open;
+      browseDropdownElLocal.setAttribute('aria-hidden', newOpen ? 'false' : 'true');
+      if(newOpen){
+        const homeEl = document.getElementById('home');
+        if(homeEl && homeEl.scrollIntoView) homeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function setActiveCategory(cat){
+      activeCategory = cat || 'All';
+      document.querySelectorAll('#browseDropdown li').forEach(li=> li.classList.toggle('active', li.dataset.cat===activeCategory));
+      const titleEl = document.querySelector('.section-title');
+      if(titleEl) titleEl.textContent = (activeCategory === 'All' ? 'AVAILABLE ITEMS' : (activeCategory.toUpperCase() + ' — AVAILABLE'));
+      renderItems(activeCategory);
+      // ensure the home section is visible and scroll to it
+      showSection('home');
+      const homeEl = document.getElementById('home');
+      if(homeEl && homeEl.scrollIntoView) homeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // attach click handlers for dropdown items (guarded)
+    document.querySelectorAll('#browseDropdown li').forEach(li=>{
+      li.addEventListener('click', (e)=>{
+        if(e && e.stopPropagation) e.stopPropagation();
+        const cat = li.dataset.cat;
+        setActiveCategory(cat);
+        const bd = document.getElementById('browseDropdown');
+        if(bd) bd.setAttribute('aria-hidden','true');
+      });
+    });
+
+    // close dropdown when clicking outside
+    document.addEventListener('click', (e)=>{
+      const target = e.target;
+      const bd = document.getElementById('browseDropdown');
+      const label = document.getElementById('browseLabel');
+      const isInside = (bd && bd.contains(target)) || (label && label.contains(target));
+      if(!isInside && bd) bd.setAttribute('aria-hidden','true');
+    });
+
+    // init
+    // Load posts saved from Post.html (localStorage) and then render
+    function loadPostsFromLocalStorage(){
+      try{
+        const key = 'dropAndSwap_posts';
+        const saved = JSON.parse(localStorage.getItem(key) || '[]');
+        // prepend saved posts into items if not already present (by id)
+        saved.forEach(p=>{
+          if(!items.find(it=> it.id === p.id)){
+            items.unshift({ id: p.id, title: p.title, qty: p.loc || '', postedBy: 'Community', desc: p.desc || '', image: p.image || '' , category: 'Misc' });
+          }
+        });
+      }catch(e){ console.warn('Could not load saved posts', e); }
+    }
+
+    loadPostsFromLocalStorage();
+    renderItems();
+    showSection('home');
+
+    // If coming from materials page with a stored chat item, open chat overlay
+    (function(){
+      const pending = sessionStorage.getItem('chatItem');
+      if(!pending) return;
+      try {
+        const chatObj = JSON.parse(pending);
+        let item = items.find(it => it.id === chatObj.id);
+        if(!item){
+          item = {
+            id: chatObj.id || generateId(),
+            title: chatObj.title || 'Item',
+            qty: chatObj.qty || chatObj.desc || '',
+            postedBy: chatObj.postedBy || 'Poster',
+            desc: chatObj.desc || '',
+            image: chatObj.image || '',
+            category: chatObj.category || 'Misc'
+          };
+          items.unshift(item);
+          renderItems();
+        }
+        openChatForItem(item.id);
+      } catch(err){ console.warn('Could not open chat from stored item', err); }
+      sessionStorage.removeItem('chatItem');
+    })();
+
+    // refresh when other window/tab writes posts
+    window.addEventListener('storage', (e)=>{
+      if(e.key === 'dropAndSwap_posts'){
+        loadPostsFromLocalStorage();
+        renderItems();
+      }
+    });
+
+    // Optional: open a sample detail if you want on load
+    // openDetail(items[1].id);
+
+    // keyboard escape: close chat & post panel
+    window.addEventListener('keydown', e=>{
+      if(e.key === 'Escape'){
+        chatOverlay.classList.remove('open');
+        postPanel.classList.remove('active');
+      }
+    });
+
+  </script>
+<script>
+function goToPostPage() {
+  window.location.href = "post.html";  // <-- opens your new page
+}
+</script>
+<section id="postPage" style="display:none; padding:50px;">
+  
+  <h1 style="font-size:48px; font-weight:800; color:#6c1d44; margin-bottom:30px;">
+    Give Away Material
+  </h1>
+
+  <div style="display:flex; gap:50px;">
+
+    <!-- Left: Image upload preview + crop -->
+    <div style="flex:1;">
+      <div style="width:100%; background:#eee; border-radius:20px; height:420px;
+                  display:flex; align-items:center; justify-content:center; overflow:hidden;">
+        <img id="cropPreview" style="max-width:100%; display:none;">
+      </div>
+
+      <input type="file" id="cropInput" accept="image/*"
+             style="margin-top:15px; font-size:16px;">
+      
+      <button id="cropBtn"
+              style="margin-top:10px; padding:10px 16px; background:#6c1d44; color:white;
+                     border:none; border-radius:10px; cursor:pointer; display:none;">
+        Crop Image
+      </button>
+    </div>
+
+    <!-- Right: Form -->
+    <div style="flex:1;">
+
+      <label style="font-weight:700;">Item Title</label>
+      <input id="postTitle2" type="text"
+             style="width:100%; padding:12px; border-radius:12px; background:#c9b3c1; border:none; margin-bottom:15px;">
+
+      <label style="font-weight:700;">Description</label>
+      <textarea id="postDesc2"
+             style="width:100%; height:120px; padding:12px; border-radius:12px; background:#c9b3c1; border:none; margin-bottom:15px;"></textarea>
+
+      <label style="font-weight:700;">Pick Up Location</label>
+      <input id="postLoc2" type="text"
+             style="width:100%; padding:12px; border-radius:12px; background:#c9b3c1; border:none; margin-bottom:25px;">
+
+      <button id="submitPost"
+              style="background:#6c1d44; color:white; padding:14px 28px; border:none;
+                     border-radius:30px; cursor:pointer; font-size:18px; margin-right:10px;">
+        Post Item
+      </button>
+
+      <button onclick="backToHome()"
+              style="background:#bcbcbc; color:white; padding:14px 28px; border:none; 
+                     border-radius:30px; cursor:pointer; font-size:18px;">
+        Cancel
+      </button>
+
+    </div>
+  </div>
+
+</section>
+
+<script>
+  (function(){
+    function sizeHome() {
+      const hero = document.querySelector('.hero0-image');
+      const home = document.getElementById('home');
+      if(!home) return;
+      const heroRect = hero ? hero.getBoundingClientRect() : null;
+      const heroHeight = heroRect ? heroRect.height : 0;
+      const desiredHeight = Math.max(window.innerHeight - heroHeight, 300);
+      home.style.height = Math.round(desiredHeight) + 'px';
+      home.style.width = '100%';
+      home.style.marginLeft = '0';
+      home.style.marginRight = '0';
+      home.style.minHeight = '';
+    }
+    window.addEventListener('load', sizeHome);
+    window.addEventListener('resize', sizeHome);
+    sizeHome();
+  })();
+</script>
+
+  </div>
+</div>
+
+</body>
+</html>
+
